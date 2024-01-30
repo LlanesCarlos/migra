@@ -1,0 +1,61 @@
+import mysql.connector
+import cx_Oracle
+
+# Conexión a MySQL
+mysql_conn = mysql.connector.connect(
+    host='host.host.com.py',
+    user='root',
+    password='password',
+    database='database'
+)
+
+# Cursor para ejecutar consultas en MySQL
+mysql_cursor = mysql_conn.cursor()
+
+# Conexión a Oracle
+oracle_conn = cx_Oracle.connect(
+    'oracle_user/oracle_password@algo.host.com.py:puerto/???')
+
+# Cursor para ejecutar consultas en Oracle
+oracle_cursor = oracle_conn.cursor()
+
+# Ejemplo de consulta en MySQL
+#mysql_cursor.execute("SELECT LIM_CREDITO, CONDICION_PAGO, CUOTA, MONTO_CUOTA FROM LINEA_CREDITO WHERE DS.NRO_SOLICITUD = ''")
+mysql_cursor.execute("SELECT CASE WHEN Entrega > 0 THEN entrega + ((numero_de_pagos-1) * cuota) ELSE entrega + (Numero_de_pagos  * cuota) END AS credito, CONDICION_PAGO, NUMERO_DE_PAGOS, CUOTA FROM DATOS_BD WHERE id_datos_bd = '';")
+# Obtener los resultados de MySQL
+mysql_results = mysql_cursor.fetchall()
+
+# Ejemplo de consulta en MySQL
+mysql_cursor.execute("SELECT persona_tipo  FROM DATOS_BD WHERE id_datos_bd = 'valor'")
+
+# Obtener los resultados de MySQL
+mysql_results2 = mysql_cursor.fetchall()
+
+# Ejemplo de consulta en Oracle
+oracle_cursor.execute("select COLUMNA_X from TABLA_X WHERE COLUMNA_Z = 'algún_valor'")
+
+# Obtener los resultados de Oracle
+oracle_results = oracle_cursor.fetchall()
+
+# Iterar sobre los resultados de MySQL y Oracle y realizar la inserción en Oracle
+for mysql_row,mysql_row2, oracle_row in zip(mysql_results,mysql_results2, oracle_results):
+    LIM_CREDITO, CONDICION_PAGO, CUOTA, MONTO_CUOTA = mysql_row  # Desempaquetar los valores de MySQL
+    PERSONA_TIPO = mysql_row2  # Desempaquetar los valores de MySQL
+    COLUMNA_Z = oracle_row  # Desempaquetar los valores de Oracle
+
+    #  inserción en Oracle
+    oracle_cursor.execute(
+    'SELECT TABLA_X_INPUT (:1, :2, :3, :4, :5 ,:6) FROM otra_tabla',
+    ( COLUMNA_Z[0],LIM_CREDITO, CONDICION_PAGO, CUOTA, PERSONA_TIPO[0],MONTO_CUOTA))  # Pasar los valores como strings en lugar de tuplas
+
+
+
+# Confirmar los cambios en Oracle
+oracle_conn.commit()
+
+# Cerrar los cursores y conexiones
+mysql_cursor.close()
+mysql_conn.close()
+
+oracle_cursor.close()
+oracle_conn.close()
